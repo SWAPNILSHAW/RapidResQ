@@ -20,7 +20,7 @@ const   MyDrawer({super.key, required this.selectedIndex, required this.onItemSe
 
 class _MyDrawerState extends State<MyDrawer> {
   String userName = "Loading..."; // Default name while fetching
-
+  String phone = "Loading...";
   bool pushNotifications = false;
   bool promotions = false;
   bool appUpdates = false;
@@ -39,12 +39,14 @@ class _MyDrawerState extends State<MyDrawer> {
     Map<String, String> localData = await _userService.loadUserDetails();
     setState(() {
       userName = localData['name']!;
+      phone = localData['phone']!;
     });
 
     // Fetch from Firebase for latest data
     Map<String, String> firebaseData = await _userService.getUserDetails();
     setState(() {
       userName = firebaseData['name']!;
+      phone = firebaseData['phone']!;
     });
   }
 
@@ -62,8 +64,9 @@ class _MyDrawerState extends State<MyDrawer> {
                 ? const CircularProgressIndicator(color: Colors.white) // Show a loader until data is fetched
                 : Text(
               userName, // Display the fetched name or fallback message
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 24),
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 29),
             ),
+
           ),
           ListTile(
             leading: const Icon(Icons.home),

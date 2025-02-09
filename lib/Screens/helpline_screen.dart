@@ -5,8 +5,6 @@ import 'package:url_launcher/url_launcher.dart';
 class HelplineScreen extends StatelessWidget {
   HelplineScreen({super.key});
 
-  final User? user = FirebaseAuth.instance.currentUser; // Get logged-in user
-
   final List<Map<String, String>> helplines = [
     {"name": "Police", "number": "100", "icon": "assets/police.png"},
     {"name": "Ambulance", "number": "102", "icon": "assets/ambulance.png"},
@@ -23,7 +21,7 @@ class HelplineScreen extends StatelessWidget {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Unable to make the call. Please check your phone settings.")),
+        const SnackBar(content: Text("Unable to make the call. Please check your phone settings.")),
       );
     }
   }
@@ -32,17 +30,15 @@ class HelplineScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Emergency Helplines", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("Emergency Helplines", style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.redAccent,
       ),
-      body: user == null
-          ? Center(child: Text('Please log in to access helplines.'))
-          : ListView.builder(
+      body:ListView.builder(
         itemCount: helplines.length,
         itemBuilder: (context, index) {
           final helpline = helplines[index];
           return Card(
-            margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             elevation: 4,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             child: ListTile(
@@ -50,10 +46,10 @@ class HelplineScreen extends StatelessWidget {
                 backgroundImage: AssetImage(helpline["icon"]!),
                 backgroundColor: Colors.transparent,
               ),
-              title: Text(helpline["name"]!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              title: Text(helpline["name"]!, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               subtitle: Text("Call: ${helpline["number"]}"),
               trailing: IconButton(
-                icon: Icon(Icons.call, color: Colors.green),
+                icon: const Icon(Icons.call, color: Colors.green),
                 onPressed: () => _callHelpline(context, helpline["number"]!),
               ),
             ),

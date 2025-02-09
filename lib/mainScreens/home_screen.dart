@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:woman_safety/Screens/add_guardians_details.dart';
+import 'package:woman_safety/Screens/helpline_screen.dart';
 import 'package:woman_safety/widget/welcome_bottom_image.dart';
 import '../Animations/slide_page_route.dart';
 import '../drawer/custom_app_bar.dart';
@@ -68,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
               left: screenWidth * 0.08,
               child: Center(
                 child: Text(
-                  "Safety Shield",
+                  "RapidResQ",
                   style: GoogleFonts.poppins(
                     fontSize: screenWidth * 0.1,
                     fontWeight: FontWeight.bold,
@@ -108,6 +109,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     _buildButton(context, Icons.phone, "Helpline", () {
                       // Navigate to Helpline screen
+                      Navigator.push(
+                        context,
+                        SlidePageRoute(page:  HelplineScreen()),
+                      );
                     }),
                     _buildButton(context, Icons.camera_alt, "Camera", () {
                       // Navigate to Camera screen

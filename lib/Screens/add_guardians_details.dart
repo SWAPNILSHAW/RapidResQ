@@ -52,26 +52,27 @@ class _AddGuardiansDetailsState extends State<AddGuardiansDetails> {
               labelText: "Enter your Guardian Name",
               hintText: "Name",
               keyboardType: TextInputType.text,
-              obscureText: true,
+              obscureText: false,
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             CustomTextField(
                 controller: _numberController,
                 labelText: "Enter your Phone Number",
                 hintText: "Phone Number",
                 keyboardType: TextInputType.number,
-                obscureText: true),
+                obscureText: false),
           ],
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel')),
-
-          const SizedBox(width: 10 ,),
-          TextButton(onPressed: _addGuardian, child: const Text('Add')),
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          const SizedBox(width: 10),
+          TextButton(
+            onPressed: _addGuardian,
+            child: const Text('Add'),
+          ),
         ],
       ),
     );
@@ -86,34 +87,52 @@ class _AddGuardiansDetailsState extends State<AddGuardiansDetails> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: CustomAppBar(
-        title: "Add Guardian Details",
+        title: "Add Details",
         onMenuPressed: () {
           _scaffoldKey.currentState?.openDrawer();
         },
         showLeading: false,
       ),
       body: StreamBuilder(
-        stream: _guardianCollection
-            .orderBy('timestamp', descending: true)
-            .snapshots(),
+        stream: _guardianCollection.orderBy('timestamp', descending: true).snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('No guardians added yet.'));
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No guardians added yet.'));
+          }
+
           return ListView(
             children: snapshot.data!.docs.map((doc) {
-              Map<String, dynamic> data =
-              doc.data() as Map<String, dynamic>;
-              return ListTile(
-                leading: Icon(Icons.person, color: Colors.red),
-                title: Text(data['name']),
-                subtitle: Text(data['number']),
-                trailing: IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _removeGuardian(doc.id),
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(16), // Adds padding inside the card
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.red,
+                    child: Icon(Icons.person, color: Colors.white),
+                  ),
+                  title: Text(
+                    data['name'],
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    "Phone: ${data['number']}",
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _removeGuardian(doc.id),
+                  ),
                 ),
               );
             }).toList(),
@@ -122,7 +141,7 @@ class _AddGuardiansDetailsState extends State<AddGuardiansDetails> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddGuardianDialog,
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
         backgroundColor: Colors.red,
       ),
     );
