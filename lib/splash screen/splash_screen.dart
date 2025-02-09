@@ -107,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                   const SizedBox(height: 30),
                   Text(
-                    'ShiEld',
+                    'RapidResQ',
                     style: GoogleFonts.poppins(
                       fontSize: screenWidth * 0.12,
                       color: const Color(0xFF904C77),
