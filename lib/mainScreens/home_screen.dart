@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:woman_safety/Screens/add_guardians_details.dart';
 import 'package:woman_safety/widget/welcome_bottom_image.dart';
+import '../Animations/slide_page_route.dart';
 import '../drawer/custom_app_bar.dart';
 import '../drawer/my_drawer.dart';
 import '../widget/show_exit_confirmation_dialog.dart';
@@ -115,6 +117,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     }),
                     _buildButton(context, Icons.people, "Parents", () {
                       // Navigate to Parents screen
+                      Navigator.push(
+                        context,
+                        SlidePageRoute(page: const AddGuardiansDetails()),
+                      );
                     }),
                   ],
                 ),
