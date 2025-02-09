@@ -1,9 +1,5 @@
 
-```markdown
 # RapidResQ
-
-![RapidResQ Logo](path/to/logo.png)
-
 ## 🚀 Introduction
 
 Welcome to **RapidResQ**, your ultimate solution for rapid emergency responses. This application, built with Dart, aims to streamline and enhance the efficiency of emergency services.
@@ -34,7 +30,6 @@ Welcome to **RapidResQ**, your ultimate solution for rapid emergency responses. 
     ```bash
     dart pub get
     ```
-
 ## 🧪 Running Tests
 
 To run tests, execute the following command:
