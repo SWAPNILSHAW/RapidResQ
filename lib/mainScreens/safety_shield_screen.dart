@@ -30,7 +30,7 @@ class _SafetyShieldScreenState extends State<SafetyShieldScreen> {
     return Scaffold(
       key: _scaffoldKey, // Set the key to the Scaffold
       appBar: CustomAppBar(
-        title: "Safety Shield",
+        title: "RapidResQ",
         onMenuPressed: () {
           _scaffoldKey.currentState?.openDrawer(); // Open the drawer using the key
         },
