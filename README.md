@@ -61,4 +61,3 @@ For any inquiries or issues, please contact us at [swapnilshaw2005@example.com](
 Made with ❤️ by the RapidResQ team.
 ```
 
-Feel free to replace the placeholders like `path/to/logo.png`, `path/to/screenshot1.png`, and `email@example.com` with actual data relevant to your project. This template includes a logo, features, screenshots, installation instructions, test running, contributing guidelines, license information, and contact details to make your README file comprehensive and attractive.
