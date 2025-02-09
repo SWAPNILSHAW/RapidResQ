@@ -1,4 +1,3 @@
-Creating a fancy and attractive README file involves several key sections and visual elements. Here is a sample README template you can use for your `RapidResQ` repository:
 
 ```markdown
 # RapidResQ
