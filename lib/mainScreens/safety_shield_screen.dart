@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:woman_safety/drawer/custom_app_bar.dart';
 import 'package:woman_safety/drawer/my_drawer.dart';
-import 'package:woman_safety/widget/permissions_helper.dart';
+import 'package:woman_safety/mainScreens/home_screen.dart';
+
+import '../Animations/slide_page_route.dart';
 
 class SafetyShieldScreen extends StatefulWidget {
   const SafetyShieldScreen({super.key});
@@ -101,7 +103,10 @@ class _SafetyShieldScreenState extends State<SafetyShieldScreen> {
             SizedBox(height: screenHeight * 0.02),
             OutlinedButton(
               onPressed: () {
-                PermissionHelper.requestAllPermissions(context);
+                Navigator.push(
+                  context,
+                  SlidePageRoute(page:  HomeScreen()),
+                );
               },
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Color(0xFF904C77), width: 2),

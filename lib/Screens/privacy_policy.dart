@@ -14,7 +14,7 @@ class PrivacyPolicy extends StatefulWidget {
 class _PrivacyPolicyState extends State<PrivacyPolicy> {
   final GlobalKey<ScaffoldState> _scaffoldKey =
   GlobalKey<ScaffoldState>(); // Declare the key
-  int _selectedIndex = 0; // Track the selected index for the drawer
+  int _selectedIndex = 2; // Track the selected index for the drawer
 
   // Function to handle item selection from the drawer
   void _onItemSelected(int index) {

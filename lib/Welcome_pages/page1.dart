@@ -63,7 +63,7 @@ class Page1 extends StatelessWidget {
             left: screenWidth * 0.05,
             right: screenWidth * 0.05,
             child: Text(
-              '''ShiEld is all about women safety.
+              '''RapidResQ is all about women safety.
 This app is designed to ensure your
 safety, at all times. Stay positive
 with us.''',

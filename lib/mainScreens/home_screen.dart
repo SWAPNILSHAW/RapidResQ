@@ -115,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         SlidePageRoute(page:  HelplineScreen()),
                       );
                     }),
-                    _buildButton(context, Icons.sos, "SOS", () {
+                    _buildButton(context, Icons.sos, "SOS Alert", () {
                       // Navigate to Camera screen
                       Navigator.push(
                         context,

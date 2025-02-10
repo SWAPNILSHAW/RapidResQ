@@ -16,7 +16,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Declare the key
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
   String userName = "Loading...";
   String userEmail = "Loading...";
   String userPhone = "Loading...";
