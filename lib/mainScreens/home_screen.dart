@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:woman_safety/Screens/add_guardians_details.dart';
 import 'package:woman_safety/Screens/helpline_screen.dart';
+import 'package:woman_safety/Screens/sos_alert_page.dart';
 import 'package:woman_safety/widget/welcome_bottom_image.dart';
 import '../Animations/slide_page_route.dart';
 import '../drawer/custom_app_bar.dart';
@@ -114,8 +115,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         SlidePageRoute(page:  HelplineScreen()),
                       );
                     }),
-                    _buildButton(context, Icons.camera_alt, "Camera", () {
+                    _buildButton(context, Icons.sos, "SOS", () {
                       // Navigate to Camera screen
+                      Navigator.push(
+                        context,
+                        SlidePageRoute(page:  SosAlertPage()),
+                      );
                     }),
                     _buildButton(context, Icons.location_on, "Location", () {
                       // Navigate to Location screen

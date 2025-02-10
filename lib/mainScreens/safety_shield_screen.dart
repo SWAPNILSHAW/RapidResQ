@@ -70,7 +70,7 @@ class _SafetyShieldScreenState extends State<SafetyShieldScreen> {
           children: [
             SizedBox(height: screenHeight * 0.05),
             Image.asset(
-              'assets/images/shield_icon.png',
+              'assets/images/safety_page.png',
               width: screenWidth * 0.3,
               height: screenHeight * 0.15,
             ),

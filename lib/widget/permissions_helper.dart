@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:woman_safety/mainScreens/home_screen.dart';
-import '../Animations/slide_page_route.dart';
 
 class PermissionHelper {
   static Future<bool> requestAllPermissions(BuildContext context) async {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.location,
+      Permission.locationWhenInUse,
+      Permission.locationAlways,
       Permission.camera,
       Permission.microphone,
       Permission.sms,
       Permission.contacts,
-      Permission.reminders,
+      Permission.storage,
+      Permission.photos,
+      Permission.videos,
+      Permission.audio,
+      Permission.sensors,
+      Permission.notification,
       Permission.bluetooth,
       Permission.bluetoothScan,
       Permission.bluetoothConnect,
@@ -30,11 +35,10 @@ class PermissionHelper {
 
       if (status == PermissionStatus.denied || status == PermissionStatus.permanentlyDenied) {
         Fluttertoast.showToast(
-          msg: statusMessage,
+          msg: "Permission Denied: $statusMessage",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.grey,
+          backgroundColor: Colors.red,
           textColor: Colors.white,
           fontSize: 16.0,
         );
@@ -56,7 +60,7 @@ class PermissionHelper {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Permission Required'),
+        title: const Text('Permissions Required'),
         content: const Text(
           'Some permissions are permanently denied. Please enable them in settings to continue using the app.',
         ),
