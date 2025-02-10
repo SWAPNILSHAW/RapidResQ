@@ -120,7 +120,7 @@ class Page4 extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               ),
               child: const Text(
-                'Get Start',
+                'Get Started',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),

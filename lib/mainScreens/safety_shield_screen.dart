@@ -119,7 +119,7 @@ class _SafetyShieldScreenState extends State<SafetyShieldScreen> {
                 ),
               ),
               child: Text(
-                "ACCESS ALL PERMISSIONS",
+                "Go to Home",
                 style: GoogleFonts.poppins(
                   fontSize: screenWidth * 0.04,
                   fontWeight: FontWeight.bold,
