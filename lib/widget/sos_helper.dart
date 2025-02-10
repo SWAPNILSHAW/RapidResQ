@@ -1,75 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter_sms/flutter_sms.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SosHelper {
-  static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
   static stt.SpeechToText speech = stt.SpeechToText();
   static BuildContext? globalContext;
+  static CollectionReference<Map<String, dynamic>>? _guardianCollection;
 
   static Future<void> initialize(BuildContext context) async {
     globalContext = context;
     await Firebase.initializeApp();
-    _initializeNotifications();
+    _initializeGuardianCollection();
     _startDropDetection();
     _startVoiceDetection();
   }
 
-  /// Initialize local notifications
-  static Future<void> _initializeNotifications() async {
-    var androidInitialize =
-    const AndroidInitializationSettings('@mipmap/ic_launcher');
-    var initializationSettings =
-    InitializationSettings(android: androidInitialize);
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  static void _initializeGuardianCollection() {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user != null) {
+        _guardianCollection = FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('guardians');
+      } else {
+        _guardianCollection = null;
+      }
+    });
   }
 
-  /// Show SOS notification
-  static Future<void> showNotification() async {
-    var androidDetails = const AndroidNotificationDetails(
-        'sos_channel', 'SOS Alerts',
-        importance: Importance.high, priority: Priority.high);
-    var generalNotificationDetails =
-    NotificationDetails(android: androidDetails);
-    await flutterLocalNotificationsPlugin.show(
-        0,
-        "🚨 SOS Alert Sent!",
-        "Your emergency alert has been sent to contacts.",
-        generalNotificationDetails);
-  }
-
-  /// Get current location as a Google Maps link
   static Future<String> getCurrentLocationLink() async {
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    return "https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}";
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      return "http://maps.google.com/?q=${position.latitude},${position.longitude}"; // Corrected format
+    } catch (e) {
+      print("Error getting location: $e");
+      return "Could not get location.";
+    }
   }
 
-  /// Fetch guardian contacts from Firebase Firestore
   static Future<List<String>> getGuardianContacts() async {
     List<String> contacts = [];
-    try {
-      CollectionReference guardians =
-      FirebaseFirestore.instance.collection('guardians');
-      QuerySnapshot querySnapshot = await guardians.get();
+    if (_guardianCollection != null) {
+      try {
+        QuerySnapshot querySnapshot = await _guardianCollection!.get();
 
-      for (var doc in querySnapshot.docs) {
-        contacts.add(doc['phone']);
+        for (var doc in querySnapshot.docs) {
+          contacts.add(doc['number']);
+        }
+      } catch (e) {
+        print("❌ Error fetching guardians: $e");
       }
-    } catch (e) {
-      print("❌ Error fetching guardians: $e");
+    } else {
+      print("❌ Guardian collection not initialized. User not logged in?");
     }
     return contacts;
   }
 
-  /// Send SOS alert via SMS & WhatsApp
   static Future<void> sendSOSMessage() async {
     if (globalContext == null) return;
 
@@ -78,42 +70,62 @@ class SosHelper {
     List<String> recipients = await getGuardianContacts();
 
     if (recipients.isNotEmpty) {
-      await sendSMS(message: message, recipients: recipients, sendDirect: true);
       await sendWhatsAppMessage(recipients, message);
       await saveToFirebase(message, recipients);
-      showNotification();
 
       ScaffoldMessenger.of(globalContext!).showSnackBar(
-          const SnackBar(content: Text("🚨 SOS Alert Sent!")));
+        const SnackBar(content: Text("🚨 SOS Alert Sent!")),
+      );
+    } else {
+      ScaffoldMessenger.of(globalContext!).showSnackBar(
+        const SnackBar(content: Text("No guardians found. Add guardians first.")),
+      );
     }
   }
 
-  /// Send message via WhatsApp
   static Future<void> sendWhatsAppMessage(
       List<String> contacts, String message) async {
     String encodedMessage = Uri.encodeComponent(message);
 
     for (String phoneNumber in contacts) {
+      phoneNumber = phoneNumber.replaceAll(" ", "");
+      phoneNumber = phoneNumber.replaceAll("+", "");
+      if (!phoneNumber.startsWith("91")) {
+        phoneNumber = "91" + phoneNumber;
+      }
+
+      print("Phone number: $phoneNumber");
       String url = "https://wa.me/$phoneNumber?text=$encodedMessage";
+      print("WhatsApp URL: $url");
+
       if (await canLaunchUrl(Uri.parse(url))) {
         await launchUrl(Uri.parse(url));
+      } else {
+        print("Could not launch WhatsApp for $phoneNumber");
+        ScaffoldMessenger.of(globalContext!).showSnackBar(
+          SnackBar(content: Text("Could not send message to $phoneNumber")),
+        );
       }
     }
   }
 
-  /// Save SOS alert details to Firebase
-  static Future<void> saveToFirebase(
-      String message, List<String> contacts) async {
-    CollectionReference sosCollection =
-    FirebaseFirestore.instance.collection('sos_alerts');
-    await sosCollection.add({
-      "message": message,
-      "contacts": contacts,
-      "timestamp": FieldValue.serverTimestamp()
-    });
+  static Future<void> saveToFirebase(String message, List<String> contacts) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      CollectionReference sosCollection = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('sos_alerts');
+      await sosCollection.add({
+        "message": message,
+        "contacts": contacts,
+        "timestamp": FieldValue.serverTimestamp()
+      });
+    } else {
+      print("User not logged in. Cannot save SOS alert.");
+    }
   }
 
-  /// Detect sudden drop (fall detection)
   static void _startDropDetection() {
     accelerometerEvents.listen((AccelerometerEvent event) {
       double threshold = 25.0;
@@ -126,7 +138,6 @@ class SosHelper {
     });
   }
 
-  /// Detect "bachao" voice command
   static void _startVoiceDetection() async {
     bool available = await speech.initialize();
     if (available) {
@@ -137,10 +148,62 @@ class SosHelper {
             sendSOSMessage();
           }
         },
-        listenFor: Duration(seconds: 30), // Auto-restart after 30 seconds
+        listenFor: Duration(seconds: 30),
         cancelOnError: false,
         listenMode: stt.ListenMode.confirmation,
       );
     }
+  }
+}
+
+// Example usage in your widget (e.g., SosAlertPage):
+
+class SosAlertPage extends StatefulWidget {
+  @override
+  _SosAlertPageState createState() => _SosAlertPageState();
+}
+
+class _SosAlertPageState extends State<SosAlertPage> {
+  bool _isUserLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  void _checkLoginStatus() {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      setState(() {
+        _isUserLoggedIn = user != null;
+      });
+    });
+  }
+
+  void _handleSOS() async {
+    if (_isUserLoggedIn) {
+      await SosHelper.sendSOSMessage();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please log in to send SOS.")),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("SOS Alert")), // Example AppBar
+      body: Center( // Example body
+        child: ElevatedButton(
+          onPressed: _handleSOS,
+          child: const Text("Send SOS"),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _handleSOS,
+        child: const Icon(Icons.sos),
+      ),
+    );
   }
 }

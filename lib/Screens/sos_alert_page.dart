@@ -31,7 +31,7 @@ class _SosAlertPageState extends State<SosAlertPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("🚨 SOS Alert")),
+      appBar: AppBar(title: const Text("🚨 SOS Alert"),backgroundColor: Colors.redAccent,),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

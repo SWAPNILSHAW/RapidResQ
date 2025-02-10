@@ -4,17 +4,28 @@ import 'package:permission_handler/permission_handler.dart';
 
 class PermissionHelper {
   static Future<bool> requestAllPermissions(BuildContext context) async {
-    Map<Permission, PermissionStatus> statuses = await [
+    bool allPermissionsGranted = false;
+
+    while (!allPermissionsGranted) {
+      Map<Permission, PermissionStatus> statuses = await _requestPermissions();
+
+      allPermissionsGranted = _processPermissionStatus(context, statuses);
+
+      if (!allPermissionsGranted) {
+        // Wait a bit before asking again
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
+
+    return allPermissionsGranted;
+  }
+
+  static Future<Map<Permission, PermissionStatus>> _requestPermissions() async {
+    return await [
       Permission.location,
-      Permission.locationWhenInUse,
-      Permission.locationAlways,
       Permission.camera,
       Permission.microphone,
-      Permission.sms,
       Permission.contacts,
-      Permission.storage,
-      Permission.photos,
-      Permission.videos,
       Permission.audio,
       Permission.sensors,
       Permission.notification,
@@ -22,20 +33,33 @@ class PermissionHelper {
       Permission.bluetoothScan,
       Permission.bluetoothConnect,
     ].request();
-
-    return _processPermissionStatus(context, statuses);
   }
 
   static bool _processPermissionStatus(BuildContext context, Map<Permission, PermissionStatus> statuses) {
     bool allPermissionsGranted = true;
+    List<Permission> deniedPermissions = [];
+    bool hasPermanentlyDenied = false;
 
     statuses.forEach((permission, status) {
       String permissionName = permission.toString().split('.').last;
       String statusMessage = '$permissionName: $status';
 
-      if (status == PermissionStatus.denied || status == PermissionStatus.permanentlyDenied) {
+      if (status == PermissionStatus.denied) {
         Fluttertoast.showToast(
-          msg: "Permission Denied: $statusMessage",
+          msg: "Permission Denied: $statusMessage. Asking again...",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.orange,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+        deniedPermissions.add(permission);
+      }
+
+      if (status == PermissionStatus.permanentlyDenied) {
+        hasPermanentlyDenied = true;
+        Fluttertoast.showToast(
+          msg: "Permission Permanently Denied: $statusMessage",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.red,
@@ -49,11 +73,22 @@ class PermissionHelper {
       }
     });
 
-    if (statuses.values.contains(PermissionStatus.permanentlyDenied)) {
+    if (hasPermanentlyDenied) {
       _showSettingsDialog(context);
     }
 
+    // Ask only for denied permissions again (not permanently denied)
+    if (deniedPermissions.isNotEmpty) {
+      Future.delayed(const Duration(seconds: 1), () {
+        _requestDeniedPermissions(deniedPermissions);
+      });
+    }
+
     return allPermissionsGranted;
+  }
+
+  static Future<void> _requestDeniedPermissions(List<Permission> deniedPermissions) async {
+    await deniedPermissions.request();
   }
 
   static void _showSettingsDialog(BuildContext context) {

@@ -16,22 +16,30 @@ class _AddGuardiansDetailsState extends State<AddGuardiansDetails> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _numberController = TextEditingController();
 
-  final User? _user = FirebaseAuth.instance.currentUser; // Get logged-in user
+  final User? _user = FirebaseAuth.instance.currentUser;
 
   CollectionReference<Map<String, dynamic>> get _guardianCollection {
     return FirebaseFirestore.instance
         .collection('users')
-        .doc(_user?.uid) // Store inside the user's document
+        .doc(_user?.uid)
         .collection('guardians');
   }
 
-  Future<void> _addGuardian() async {
+  Future<void> _addOrUpdateGuardian(String? docId) async {
     if (_nameController.text.isNotEmpty && _numberController.text.isNotEmpty) {
-      await _guardianCollection.add({
-        'name': _nameController.text,
-        'number': _numberController.text,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      if (docId == null) { // Adding a new guardian
+        await _guardianCollection.add({
+          'name': _nameController.text,
+          'number': _numberController.text,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      } else { // Updating an existing guardian
+        await _guardianCollection.doc(docId).update({
+          'name': _nameController.text,
+          'number': _numberController.text,
+          'timestamp': FieldValue.serverTimestamp(), // Update timestamp on edit
+        });
+      }
 
       _nameController.clear();
       _numberController.clear();
@@ -39,11 +47,17 @@ class _AddGuardiansDetailsState extends State<AddGuardiansDetails> {
     }
   }
 
-  void _showAddGuardianDialog() {
+
+  void _showAddGuardianDialog({Map<String, dynamic>? guardianData, String? docId}) {
+    if (guardianData != null) {
+      _nameController.text = guardianData['name'];
+      _numberController.text = guardianData['number'];
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Guardian'),
+        title: Text(guardianData == null ? 'Add Guardian' : 'Edit Guardian'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -56,11 +70,12 @@ class _AddGuardiansDetailsState extends State<AddGuardiansDetails> {
             ),
             const SizedBox(height: 10),
             CustomTextField(
-                controller: _numberController,
-                labelText: "Enter your Phone Number",
-                hintText: "Phone Number",
-                keyboardType: TextInputType.number,
-                obscureText: false),
+              controller: _numberController,
+              labelText: "Enter your Phone Number",
+              hintText: "Phone Number",
+              keyboardType: TextInputType.number,
+              obscureText: false,
+            ),
           ],
         ),
         actions: [
@@ -70,8 +85,8 @@ class _AddGuardiansDetailsState extends State<AddGuardiansDetails> {
           ),
           const SizedBox(width: 10),
           TextButton(
-            onPressed: _addGuardian,
-            child: const Text('Add'),
+            onPressed: () => _addOrUpdateGuardian(docId),
+            child: Text(guardianData == null ? 'Add' : 'Update'),
           ),
         ],
       ),
@@ -116,7 +131,7 @@ class _AddGuardiansDetailsState extends State<AddGuardiansDetails> {
                 elevation: 4,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.all(16), // Adds padding inside the card
+                  contentPadding: const EdgeInsets.all(16),
                   leading: const CircleAvatar(
                     backgroundColor: Colors.red,
                     child: Icon(Icons.person, color: Colors.white),
@@ -129,9 +144,21 @@ class _AddGuardiansDetailsState extends State<AddGuardiansDetails> {
                     "Phone: ${data['number']}",
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => _removeGuardian(doc.id),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        onPressed: () => _showAddGuardianDialog(
+                          guardianData: data,
+                          docId: doc.id,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _removeGuardian(doc.id),
+                      ),
+                    ],
                   ),
                 ),
               );
