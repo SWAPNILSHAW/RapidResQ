@@ -34,9 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
       if (isFirstTimeUser || !permissionsGranted) {
         // New user OR missing permissions → `SafetyShieldScreen`
-        Navigator.pushReplacement(
-          context,
-          SlidePageRoute(page: const SafetyShieldScreen()),
+        Navigator.pushReplacement(context, SlidePageRoute(page: const SafetyShieldScreen()),
         );
 
         await prefs.setBool('isFirstTimeUser', false);

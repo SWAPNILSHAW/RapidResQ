@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:woman_safety/Screens/send_sms_page.dart';
 
 import '../widget/sos_helper.dart';
 
@@ -21,7 +22,7 @@ class _SosAlertPageState extends State<SosAlertPage> {
       isSending = true;
     });
 
-    await SosHelper.sendSOSMessage(); // ✅ Removed unnecessary context argument
+    await SendSmsPage(); // ✅ Removed unnecessary context argument
 
     setState(() {
       isSending = false;
