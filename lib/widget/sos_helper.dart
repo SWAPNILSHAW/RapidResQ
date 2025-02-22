@@ -3,10 +3,32 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:sensors_plus/sensors_plus.dart';
+import 'dart:async';
+import 'dart:math';
 
 class SosHelper {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static const MethodChannel _channel = MethodChannel("sos_channel");
+  static StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
+
+  /// **Start Monitoring for Drop Detection**
+  static void startDropMonitoring() {
+    _accelerometerSubscription = accelerometerEvents.listen((event) {
+      double acceleration = sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
+
+      if (acceleration < 2) { // If acceleration is very low, phone is likely dropped
+        print("⚠ Phone drop detected! Triggering SOS...");
+        triggerSOSAlert();
+      }
+    });
+  }
+
+  /// **Stop Monitoring Drop Detection**
+  static void stopDropMonitoring() {
+    _accelerometerSubscription?.cancel();
+    _accelerometerSubscription = null;
+  }
 
   /// **Get User's Current Location (Google Maps Link)**
   static Future<String> getCurrentLocation() async {
@@ -29,11 +51,11 @@ class SosHelper {
       });
       print("✅ SOS SMS sent to $phoneNumber");
     } catch (e) {
-      print("❌ Error sending SMS: $e");
+      print("❌ Error sending SMS to $phoneNumber: $e");
     }
   }
 
-  /// **Trigger SOS Alert (Call & SMS)**
+  /// **Trigger SOS Alert (Call 1st Guardian, SMS to All)**
   static Future<void> triggerSOSAlert() async {
     User? user = _auth.currentUser;
     if (user == null) {
@@ -51,21 +73,24 @@ class SosHelper {
           .collection('users')
           .doc(user.uid)
           .collection('guardians')
-          .limit(1)
-          .get();
+          .get(); // Fetch all guardians
 
       if (snapshot.docs.isNotEmpty) {
-        String phoneNumber = snapshot.docs.first.data()["number"];
-        print("📞 Calling Guardian: $phoneNumber");
-
-        await _channel.invokeMethod("makeCall", {"phoneNumber": phoneNumber});
-
         String locationLink = await getCurrentLocation();
         String message = "🚨 SOS Alert! I need help. My location: $locationLink";
 
-        await sendSms(phoneNumber, message);
+        // Call the first guardian
+        String firstGuardianNumber = snapshot.docs.first.data()["number"];
+        print("📞 Calling First Guardian: $firstGuardianNumber");
+        await _channel.invokeMethod("makeCall", {"phoneNumber": firstGuardianNumber});
+
+        // Send SMS to all guardians
+        for (var doc in snapshot.docs) {
+          String phoneNumber = doc.data()["number"];
+          await sendSms(phoneNumber, message);
+        }
       } else {
-        print("❌ No guardian found.");
+        print("❌ No guardians found.");
       }
     } catch (e) {
       print("❌ Error triggering SOS alert: $e");

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HelplineScreen extends StatelessWidget {
   HelplineScreen({super.key});
@@ -13,15 +13,22 @@ class HelplineScreen extends StatelessWidget {
     {"name": "Fire Brigade", "number": "101", "icon": "assets/fire.png"},
   ];
 
-  // Function to make a call
-  void _callHelpline(BuildContext context, String number) async {
-    final Uri url = Uri.parse("tel:$number");
+  /// **Function to make a direct call**
+  Future<void> _callHelpline(BuildContext context, String number) async {
+    // Request CALL_PHONE permission
+    if (await Permission.phone.request().isGranted) {
+      final Uri url = Uri.parse("tel:$number");
 
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
+      try {
+        await launchUrl(url);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("❌ Unable to make the call. Check phone settings.")),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Unable to make the call. Please check your phone settings.")),
+        const SnackBar(content: Text("⚠️ Phone call permission is required.")),
       );
     }
   }
@@ -33,7 +40,7 @@ class HelplineScreen extends StatelessWidget {
         title: const Text("Emergency Helplines", style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.redAccent,
       ),
-      body:ListView.builder(
+      body: ListView.builder(
         itemCount: helplines.length,
         itemBuilder: (context, index) {
           final helpline = helplines[index];
