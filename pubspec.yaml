@@ -54,9 +54,16 @@ dependencies:
   sensors_plus: ^3.0.3
   speech_to_text: ^6.6.0
 
-
-
 dev_dependencies:
+  flutter_launcher_icons: ^0.13.1  # Use the latest version
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_logo.png"  # Path to your icon image
+  adaptive_icon_background: "#ffffff"  # (Optional) Adaptive icon background color
+ # adaptive_icon_foreground: "assets/icon/adaptive_foreground.png"  # (Optional) Adaptive icon foreground (Android only)
+
   flutter_test:
     sdk: flutter
 
